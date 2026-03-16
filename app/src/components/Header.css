@@ -1,0 +1,113 @@
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.menu-toggle-btn {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: var(--radius-md);
+  color: var(--color-text-main);
+  font-weight: 500;
+  gap: 8px;
+}
+
+.menu-toggle-btn span {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.header-title h1 {
+  font-size: 2rem;
+  margin: 0 0 4px 0;
+  color: var(--color-text-main);
+  letter-spacing: -0.02em;
+}
+
+.date-subtitle {
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--color-primary);
+  color: white;
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 0.95rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:hover {
+  background-color: var(--color-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    margin-bottom: 20px;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .header-left {
+    gap: 10px;
+    align-items: center;
+  }
+
+  .menu-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-bg-light);
+    border: 1px solid var(--color-border);
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    flex-shrink: 0;
+    color: var(--color-primary);
+  }
+
+  .header-title h1 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 2px;
+  }
+
+  .date-subtitle {
+    font-size: 0.8rem;
+  }
+
+  .btn-primary span {
+    display: none; /* Hide text on mobile */
+  }
+
+  .btn-primary {
+    padding: 10px;
+    border-radius: var(--radius-full);
+  }
+}
