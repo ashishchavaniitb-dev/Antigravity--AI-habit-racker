@@ -10,59 +10,7 @@ function HabitCard({ habit, onCheckIn, onClick, onPromptRequest }) {
   const weekDates = getPast7Days(); // Array of last 7 'YYYY-MM-DD' strings ending today
   const todayStr = getTodayString();
   
-  // Calculate current streak based on logs
-  // Simple logic: count backwards from today until we hit a missed day
-  const calculateStreak = () => {
-    let streak = 0;
-    const d = new Date(todayStr); // Start evaluating from today
-    d.setHours(0,0,0,0);
-    
-    // Check if today is done.
-    const todayDone = !!logs[todayStr];
-    if (todayDone) {
-      streak++;
-    }
-    // We always step back to evaluate yesterday and beyond
-    d.setDate(d.getDate() - 1); 
-    
-    // Count continuously backwards
-    while (true) {
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      const dateStr = `${year}-${month}-${day}`;
-      const dayOfWeek = d.getDay();
-      
-      const isRequiredDay = () => {
-         const freq = habit.frequency;
-         if (!freq || freq.type === 'none') return false; // Doesn't require streaks in same way
-         if (freq.type === 'daily') return true;
-         if (freq.type === 'weekly' && freq.days && freq.days.length > 0) {
-           return freq.days.includes(dayOfWeek);
-         }
-         // Fallback for weekly without specific days or monthly -> assume standard streak logic
-         return true; 
-      };
-
-      if (logs[dateStr]) {
-        streak++;
-        d.setDate(d.getDate() - 1); // Move to previous day
-      } else {
-        if (isRequiredDay()) {
-           break; // Streak broken because a required day was missed
-        } else {
-           // Skip this day without breaking the streak, it wasn't required
-           d.setDate(d.getDate() - 1);
-        }
-      }
-    }
-    return streak;
-  };
-
-  const streakCount = calculateStreak();
-  const completedToday = !!logs[todayStr];
-
-  // Trophy and progress logic
+  // Date helpers
   const getWeekStartSunday = (dateStr) => {
     const d = dateStr ? new Date(dateStr) : new Date();
     d.setHours(0, 0, 0, 0);
@@ -83,12 +31,6 @@ function HabitCard({ habit, onCheckIn, onClick, onPromptRequest }) {
     }
     return dates;
   };
-
-  const currentSun = getWeekStartSunday(todayStr);
-  const currentWeekDates = getWeekSunToSat(currentSun);
-  const prevSun = new Date(currentSun);
-  prevSun.setDate(prevSun.getDate() - 7);
-  const prevWeekDates = getWeekSunToSat(prevSun);
 
   const calculateWeekRate = (dates) => {
     let expectedDays = 7;
@@ -119,10 +61,118 @@ function HabitCard({ habit, onCheckIn, onClick, onPromptRequest }) {
     return expectedDays > 0 ? (daysCompleted / expectedDays) * 100 : 0;
   };
 
-  const currentWeekRate = Math.min(100, calculateWeekRate(currentWeekDates));
-  const prevWeekRate = Math.min(100, calculateWeekRate(prevWeekDates));
-  const habitHasPrevData = Object.keys(logs).some(d => d <= prevWeekDates[prevWeekDates.length - 1]);
-  const hasTrophy = habitHasPrevData ? (currentWeekRate > prevWeekRate) : (currentWeekRate === 100 && currentWeekRate > 0);
+  // Calculate current streak based on logs
+  const calculateStreak = () => {
+    let streak = 0;
+    const d = new Date(todayStr); // Start evaluating from today
+    d.setHours(0,0,0,0);
+    
+    // Check if today is done.
+    if (logs[todayStr]) {
+      streak++;
+    }
+    
+    // We always step back to evaluate yesterday and beyond
+    d.setDate(d.getDate() - 1); 
+    
+    let currentWeekSunday = null;
+    let missedInCurrentWeek = 0;
+
+    // Count continuously backwards
+    while (true) {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
+      const dayOfWeek = d.getDay();
+      
+      const isRequiredDay = () => {
+         const freq = habit.frequency;
+         if (!freq || freq.type === 'none') return false; // Doesn't require streaks in same way
+         if (freq.type === 'daily') return true;
+         if (freq.type === 'weekly' && freq.days && freq.days.length > 0) {
+           return freq.days.includes(dayOfWeek);
+         }
+         // Fallback for weekly without specific days or monthly -> assume standard streak logic
+         return true; 
+      };
+
+      const thisWeekSunday = getWeekStartSunday(dateStr).getTime();
+      if (currentWeekSunday !== thisWeekSunday) {
+         currentWeekSunday = thisWeekSunday;
+         missedInCurrentWeek = 0; // reset misses for the new week
+      }
+
+      if (logs[dateStr]) {
+        streak++;
+      } else {
+        if (isRequiredDay()) {
+           missedInCurrentWeek++;
+           if (missedInCurrentWeek > 1) {
+              break; // Streak broken because a second required day was missed in the same week
+           }
+        }
+      }
+      d.setDate(d.getDate() - 1); // Move to previous day
+    }
+    return streak;
+  };
+
+  const streakCount = calculateStreak();
+  const completedToday = !!logs[todayStr];
+
+  // Trophy logic using all historic data to find lifetime trophies
+  const calculateTrophyData = () => {
+    const currentSun = getWeekStartSunday(todayStr);
+    const logDates = Object.keys(logs).sort();
+    
+    // If no logs, we just have the current week
+    if (logDates.length === 0) {
+       const dates = getWeekSunToSat(currentSun);
+       return { totalTrophies: 0, hasCurrentTrophy: false, prevWeekRate: 0, currentWeekRate: Math.min(100, calculateWeekRate(dates)) };
+    }
+
+    const firstLogStr = logDates[0];
+    const startSun = getWeekStartSunday(firstLogStr);
+    
+    let totalTrophyCount = 0;
+    let prevRate = null;
+    let currentTrophyEarned = false;
+    let currentWr = 0;
+    let previousWr = 0;
+
+    let evalSun = new Date(startSun);
+    while (evalSun <= currentSun) {
+      const weekDates = getWeekSunToSat(evalSun);
+      const weekRate = Math.min(100, calculateWeekRate(weekDates));
+      
+      let earned = false;
+      if (prevRate === null) {
+        // First week of tracking
+        earned = weekRate === 100 && weekRate > 0;
+      } else {
+        // Subsequent weeks
+        earned = (weekRate > 0 || prevRate > 0) && (weekRate >= prevRate);
+      }
+      
+      if (earned) {
+        totalTrophyCount++;
+      }
+
+      if (evalSun.getTime() === currentSun.getTime()) {
+         currentTrophyEarned = earned;
+         currentWr = weekRate;
+         previousWr = prevRate === null ? 0 : prevRate;
+      }
+      
+      prevRate = weekRate;
+      evalSun.setDate(evalSun.getDate() + 7); // next week
+    }
+
+    return { totalTrophies: totalTrophyCount, hasCurrentTrophy: currentTrophyEarned, currentWeekRate: currentWr, prevWeekRate: previousWr };
+  };
+
+  const { totalTrophies, hasCurrentTrophy, currentWeekRate, prevWeekRate } = calculateTrophyData();
 
   // V3 Target Calculation Additions
   const renderCheckbox = (dateStr, index, isFuture) => {
@@ -231,22 +281,19 @@ function HabitCard({ habit, onCheckIn, onClick, onPromptRequest }) {
             <span className="stat-value">{streakCount}</span>
           </div>
 
-          {/* Removed progress-container element here since it's now full card background */}
-
-          {hasTrophy && (
-            <div 
-              className="stat-group trophy-stat" 
-              onClick={(e) => { e.stopPropagation(); setShowTooltip(!showTooltip); }}
-            >
-              <Trophy size={18} weight="fill" color="var(--color-warning)" />
-              {showTooltip && (
-                <div className="trophy-tooltip" onClick={(e) => e.stopPropagation()}>
-                  <strong>Weekly Goal Met!</strong>
-                  <p>You matched or beat your previous week's progress to earn this trophy.</p>
-                </div>
-              )}
-            </div>
-          )}
+          <div 
+            className={`stat-group trophy-stat ${hasCurrentTrophy ? 'has-trophy' : ''}`} 
+            onClick={(e) => { e.stopPropagation(); setShowTooltip(!showTooltip); }}
+          >
+            <Trophy size={18} weight={hasCurrentTrophy ? "fill" : "regular"} color={hasCurrentTrophy ? "var(--color-warning)" : "var(--color-text-muted)"} />
+            <span className="stat-value">{totalTrophies}</span>
+            {showTooltip && (
+              <div className="trophy-tooltip" onClick={(e) => e.stopPropagation()}>
+                <strong>Weekly Goal Met!</strong>
+                <p>Trophies are awarded when you match or exceed your previous week's progress! You have earned them {totalTrophies} times.</p>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="habit-week-grid">
