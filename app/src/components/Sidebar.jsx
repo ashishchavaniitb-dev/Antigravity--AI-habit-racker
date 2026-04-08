@@ -16,19 +16,11 @@ function Sidebar({ currentView, onViewChange, onLogout, isOpen, onClose }) {
         <div className="nav-section">
           <h3 className="section-title">Views</h3>
           <button 
-            className={`nav-item ${currentView === 'today' ? 'active' : ''}`}
-            onClick={() => onViewChange('today')}
+            className={`nav-item ${currentView === 'habits' ? 'active' : ''}`}
+            onClick={() => onViewChange('habits')}
           >
             <CheckSquare size={20} />
-            <span>Today's Habits</span>
-          </button>
-          
-          <button 
-            className={`nav-item ${currentView === 'all' ? 'active' : ''}`}
-            onClick={() => onViewChange('all')}
-          >
-            <SquaresFour size={20} />
-            <span>All Habits</span>
+            <span>Habits</span>
           </button>
         </div>
 

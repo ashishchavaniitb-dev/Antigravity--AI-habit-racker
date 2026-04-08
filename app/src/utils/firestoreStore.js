@@ -17,6 +17,40 @@ import {
 // Helper to get collection references per user
 const getHabitRef = (userId) => collection(db, "users", userId, "habits");
 const getJournalRef = (userId) => collection(db, "users", userId, "journals");
+const getSpaceRef = (userId) => collection(db, "users", userId, "spaces");
+
+// ─── Spaces Methods ───
+
+export const subscribeToSpaces = (userId, callback) => {
+  if (!userId) return () => {};
+  const q = query(getSpaceRef(userId));
+  return onSnapshot(q, (snapshot) => {
+    const spaces = [];
+    snapshot.forEach((doc) => {
+      spaces.push({ id: doc.id, ...doc.data() });
+    });
+    // Fallback sort since we removed orderBy
+    spaces.sort((a, b) => (a.createdAt || '').localeCompare(b.createdAt || ''));
+    callback(spaces);
+  }, (error) => {
+    console.error("Spaces subscription error:", error);
+  });
+};
+
+export const saveSpaceFirestore = async (userId, space) => {
+  if (!userId) return;
+  const spaceRef = doc(db, "users", userId, "spaces", space.id);
+  await setDoc(spaceRef, {
+    ...space,
+    updatedAt: serverTimestamp()
+  });
+};
+
+export const deleteSpaceFirestore = async (userId, spaceId) => {
+  if (!userId) return;
+  const spaceRef = doc(db, "users", userId, "spaces", spaceId);
+  await deleteDoc(spaceRef);
+};
 
 export const subscribeToHabits = (userId, callback) => {
   if (!userId) return () => {};

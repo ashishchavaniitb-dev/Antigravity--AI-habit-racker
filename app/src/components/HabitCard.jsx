@@ -1,10 +1,11 @@
-import React from 'react';
-import { Flame } from '@phosphor-icons/react';
+import React, { useState } from 'react';
+import { Flame, Trophy } from '@phosphor-icons/react';
 import './HabitCard.css';
 import { getPast7Days, getTodayString } from '../utils/dates';
 
-function HabitCard({ habit, onCheckIn, onClick }) {
+function HabitCard({ habit, onCheckIn, onClick, onPromptRequest }) {
   const { id, name, emoji, colorClass, logs } = habit;
+  const [showTooltip, setShowTooltip] = useState(false);
   
   const weekDates = getPast7Days(); // Array of last 7 'YYYY-MM-DD' strings ending today
   const todayStr = getTodayString();
@@ -60,7 +61,69 @@ function HabitCard({ habit, onCheckIn, onClick }) {
 
   const streakCount = calculateStreak();
   const completedToday = !!logs[todayStr];
-  
+
+  // Trophy and progress logic
+  const getWeekStartSunday = (dateStr) => {
+    const d = dateStr ? new Date(dateStr) : new Date();
+    d.setHours(0, 0, 0, 0);
+    const day = d.getDay();
+    d.setDate(d.getDate() - day);
+    return d;
+  };
+
+  const getWeekSunToSat = (sunDate) => {
+    const dates = [];
+    for (let i = 0; i < 7; i++) {
+       const c = new Date(sunDate);
+       c.setDate(sunDate.getDate() + i);
+       const y = c.getFullYear();
+       const m = String(c.getMonth() + 1).padStart(2, '0');
+       const dd = String(c.getDate()).padStart(2, '0');
+       dates.push(`${y}-${m}-${dd}`);
+    }
+    return dates;
+  };
+
+  const currentSun = getWeekStartSunday(todayStr);
+  const currentWeekDates = getWeekSunToSat(currentSun);
+  const prevSun = new Date(currentSun);
+  prevSun.setDate(prevSun.getDate() - 7);
+  const prevWeekDates = getWeekSunToSat(prevSun);
+
+  const calculateWeekRate = (dates) => {
+    let expectedDays = 7;
+    if (habit.frequency) {
+        if (habit.frequency.type === 'weekly' && habit.frequency.days && habit.frequency.days.length > 0) {
+            expectedDays = habit.frequency.days.length;
+        } else if (habit.frequency.type === 'weekly' && habit.frequency.times) {
+            expectedDays = habit.frequency.times;
+        } else if (habit.frequency.type === 'none') {
+            expectedDays = 1;
+        }
+    }
+
+    let daysCompleted = 0;
+    if (!habit.target) {
+        dates.forEach(d => { if (logs[d]) daysCompleted++; });
+    } else {
+        let totalAmountLogged = 0;
+        dates.forEach(d => {
+            if (typeof logs[d] === 'number') totalAmountLogged += logs[d];
+        });
+        let weeklyTarget = habit.target.amount;
+        if (habit.frequency && habit.frequency.type === 'daily') weeklyTarget *= 7;
+        if (habit.frequency && habit.frequency.type === 'weekly') weeklyTarget *= (habit.frequency.times || 1);
+        
+        return weeklyTarget > 0 ? (totalAmountLogged / weeklyTarget) * 100 : 0;
+    }
+    return expectedDays > 0 ? (daysCompleted / expectedDays) * 100 : 0;
+  };
+
+  const currentWeekRate = Math.min(100, calculateWeekRate(currentWeekDates));
+  const prevWeekRate = Math.min(100, calculateWeekRate(prevWeekDates));
+  const habitHasPrevData = Object.keys(logs).some(d => d <= prevWeekDates[prevWeekDates.length - 1]);
+  const hasTrophy = habitHasPrevData ? (currentWeekRate > prevWeekRate) : (currentWeekRate === 100 && currentWeekRate > 0);
+
   // V3 Target Calculation Additions
   const renderCheckbox = (dateStr, index, isFuture) => {
     const isDone = !!logs[dateStr];
@@ -95,19 +158,23 @@ function HabitCard({ habit, onCheckIn, onClick }) {
       }
       
       // If it's a target habit, prompt for the amount
-      const currentVal = logs[dateStr] || 0;
-      const promptText = `Enter amount for ${dateStr} (Target: ${habit.target.amount} ${habit.target.unit})`;
-      // Provide current value if it exists, otherwise empty
-      const input = window.prompt(promptText, currentVal > 0 ? currentVal : '');
-      
-      if (input !== null) { // if not cancelled
-        const num = parseFloat(input);
-        if (!isNaN(num) && num >= 0) {
-          // Send special payload to onCheckIn
-          onCheckIn(id, dateStr, num);
-        } else if (input === '') {
-          // Empty string clears it
-          onCheckIn(id, dateStr, null); // We will update App.jsx to handle null to delete
+      if (onPromptRequest) {
+        onPromptRequest(id, dateStr, habit.target);
+      } else {
+        const currentVal = logs[dateStr] || 0;
+        const promptText = `Enter amount for ${dateStr} (Target: ${habit.target.amount} ${habit.target.unit})`;
+        // Provide current value if it exists, otherwise empty
+        const input = window.prompt(promptText, currentVal > 0 ? currentVal : '');
+        
+        if (input !== null) { // if not cancelled
+          const num = parseFloat(input);
+          if (!isNaN(num) && num >= 0) {
+            // Send special payload to onCheckIn
+            onCheckIn(id, dateStr, num);
+          } else if (input === '') {
+            // Empty string clears it
+            onCheckIn(id, dateStr, null); // We will update App.jsx to handle null to delete
+          }
         }
       }
     };
@@ -130,38 +197,16 @@ function HabitCard({ habit, onCheckIn, onClick }) {
     );
   };
 
-  // Calculate overall weekly background fill for visual progress
-  // If target-based, we sum the numeric logs vs (7 * daily target equivalent)
-  const getWeeklyFill = () => {
-    if (!habit.target) {
-      const thisWeekCompleted = weekDates.filter(date => logs[date]).length;
-      return `${Math.min(100, Math.max(5, (thisWeekCompleted / 7) * 100))}%`;
-    } else {
-      let totalAmountLogged = 0;
-      weekDates.forEach(d => {
-        if (typeof logs[d] === 'number') totalAmountLogged += logs[d];
-      });
-      // We assume weekly target is 7 * daily amount if daily freq.
-      // Easiest approximation: amount * times a week.
-      let weeklyTarget = habit.target.amount;
-      if (habit.frequency && habit.frequency.type === 'daily') weeklyTarget *= 7;
-      if (habit.frequency && habit.frequency.type === 'weekly') weeklyTarget *= (habit.frequency.times || 1);
-      
-      const pct = weeklyTarget > 0 ? (totalAmountLogged / weeklyTarget) * 100 : 0;
-      return `${Math.min(100, Math.max(5, pct))}%`;
-    }
-  };
-
-  const fillPercentage = getWeeklyFill();
-
   return (
-    <div className="habit-card" onClick={() => onClick(habit)}>
-      {/* Background color representative of the weekly progress */}
+    <div className={`habit-card ${colorClass}`} onClick={() => onClick(habit)}>    
       <div 
-        className={`habit-background ${colorClass}`} 
-        style={{ width: fillPercentage }}
+        className={`habit-background-last-week ${colorClass}`} 
+        style={{ width: `${prevWeekRate}%` }}
       ></div>
-      
+      <div 
+        className={`habit-background-current-week ${colorClass}`} 
+        style={{ width: `${currentWeekRate}%` }}
+      ></div>
       <div className="habit-content">
         <div className="habit-info">
           <span className="habit-emoji">{emoji}</span>
@@ -186,9 +231,25 @@ function HabitCard({ habit, onCheckIn, onClick }) {
             <span className="stat-value">{streakCount}</span>
           </div>
 
+          {/* Removed progress-container element here since it's now full card background */}
+
+          {hasTrophy && (
+            <div 
+              className="stat-group trophy-stat" 
+              onClick={(e) => { e.stopPropagation(); setShowTooltip(!showTooltip); }}
+            >
+              <Trophy size={18} weight="fill" color="var(--color-warning)" />
+              {showTooltip && (
+                <div className="trophy-tooltip" onClick={(e) => e.stopPropagation()}>
+                  <strong>Weekly Goal Met!</strong>
+                  <p>You matched or beat your previous week's progress to earn this trophy.</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
-        <div className="habit-week-grid" onClick={e => e.stopPropagation()}>
+        <div className="habit-week-grid">
           {weekDates.map((dateStr, index) => {
             const isFuture = dateStr > todayStr;
             return renderCheckbox(dateStr, index, isFuture);

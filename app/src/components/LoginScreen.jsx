@@ -80,18 +80,24 @@ export default function LoginScreen() {
     setLoading(true);
     setError('');
     
-    // Check if on mobile/tablet
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    
+    console.log('Starting Google Login (Popup)...');
+    console.log('Firebase Config Check:', !!import.meta.env.VITE_FIREBASE_API_KEY ? 'Loaded' : 'MISSING');
+
     try {
-      if (isMobile) {
-        await signInWithRedirect(auth, googleProvider);
-      } else {
-        await signInWithPopup(auth, googleProvider);
-      }
+      // Trying popup first as it is more reliable for state preservation than redirect on mobile
+      await signInWithPopup(auth, googleProvider);
+      console.log('Google Sign-In Success (Popup)');
     } catch (err) {
       console.error('Google Sign-In Error:', err);
-      setError('Google sign-in failed. Please try again.');
+      
+      // Provide more specific error info to help debug mobile loops
+      if (err.code === 'auth/popup-blocked') {
+        setError('Sign-in popup was blocked. Please allow popups or try again.');
+      } else if (err.code === 'auth/cancelled-popup-request' || err.code === 'auth/popup-closed-by-user') {
+        setError('Sign-in was cancelled.');
+      } else {
+        setError(`Sign-in failed: ${err.code || 'unknown'}. ${err.message || ''}`);
+      }
       setLoading(false);
     }
   };

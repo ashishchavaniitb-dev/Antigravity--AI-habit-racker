@@ -90,6 +90,14 @@
   box-shadow: 0 0 0 2px var(--color-white) inset;
 }
 
+/* Theme Colors for Color Picker */
+.color-swatch.bg-blue { background-color: var(--theme-blue-dark); }
+.color-swatch.bg-emerald { background-color: var(--theme-emerald-dark); }
+.color-swatch.bg-amber { background-color: var(--theme-amber-dark); }
+.color-swatch.bg-pink { background-color: var(--theme-pink-dark); }
+.color-swatch.bg-purple { background-color: var(--theme-purple-dark); }
+.color-swatch.bg-red { background-color: var(--theme-red-dark); }
+
 .frequency-section {
   background-color: var(--color-bg-light);
   padding: 16px;

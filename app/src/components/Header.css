@@ -5,10 +5,29 @@
   margin-bottom: 32px;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+}
+
 .header-left {
   display: flex;
   align-items: center;
   gap: 16px;
+  flex: 1;
+}
+
+.header-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.header-space-area {
+  margin-top: 4px;
 }
 
 .menu-toggle-btn {
@@ -103,7 +122,7 @@
   }
 
   .btn-primary span {
-    display: none; /* Hide text on mobile */
+    display: none;
   }
 
   .btn-primary {
@@ -111,3 +130,4 @@
     border-radius: var(--radius-full);
   }
 }
+

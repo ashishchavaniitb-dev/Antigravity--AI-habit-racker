@@ -22,7 +22,7 @@ const DAYS_OF_WEEK = [
   { val: 0, label: 'Sun' },
 ];
 
-function AddHabitModal({ isOpen, onClose, onSave, editingHabit }) {
+function AddHabitModal({ isOpen, onClose, onSave, onDelete, editingHabit, currentSpaceId }) {
   const [name, setName] = useState('');
   const [emoji, setEmoji] = useState('🔥');
   const [colorClass, setColorClass] = useState('bg-blue');
@@ -61,7 +61,8 @@ function AddHabitModal({ isOpen, onClose, onSave, editingHabit }) {
       } else {
         setName('');
         setEmoji('🔥');
-        setColorClass('bg-blue');
+        const randomColor = COLORS[Math.floor(Math.random() * COLORS.length)].id;
+        setColorClass(randomColor);
         setFreqType('daily');
         setFreqTimes(1);
         setFreqDays([]);
@@ -99,18 +100,19 @@ function AddHabitModal({ isOpen, onClose, onSave, editingHabit }) {
       name: name.trim(),
       emoji,
       colorClass,
-      createdAt: editingHabit ? editingHabit.createdAt : getTodayString(),
+      createdAt: editingHabit?.createdAt || getTodayString(),
+      // Preserve existing spaceId when editing; stamp active space for new habits
+      spaceId: editingHabit?.spaceId ?? currentSpaceId ?? null,
       frequency: {
-        type: freqType,
-        times: freqTimes,
-        days: freqDays
+        type: freqType || 'daily',
+        times: freqTimes || 1,
+        days: freqDays || []
       },
       target: hasTarget ? {
-        amount: targetAmount,
-        unit: targetUnit.trim() || 'times'
+        amount: targetAmount || 1,
+        unit: (targetUnit || '').trim() || 'times'
       } : null,
-
-      logs: editingHabit ? editingHabit.logs : {} // Preserve logs if editing
+      logs: editingHabit?.logs || {}
     });
     
     onClose();
@@ -193,7 +195,10 @@ function AddHabitModal({ isOpen, onClose, onSave, editingHabit }) {
                     min="1" 
                     max="31"
                     value={freqTimes}
-                    onChange={(e) => setFreqTimes(parseInt(e.target.value) || 1)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setFreqTimes(val === '' ? '' : parseInt(val, 10));
+                    }}
                     className="freq-input"
                   />
                 </div>
@@ -249,7 +254,10 @@ function AddHabitModal({ isOpen, onClose, onSave, editingHabit }) {
                     min="0.1"
                     step="0.1"
                     value={targetAmount}
-                    onChange={(e) => setTargetAmount(parseFloat(e.target.value) || 1)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setTargetAmount(val === '' ? '' : parseFloat(val));
+                    }}
                     className="freq-input"
                   />
                 </div>
@@ -276,6 +284,18 @@ function AddHabitModal({ isOpen, onClose, onSave, editingHabit }) {
 
 
           <div className="modal-footer">
+            {editingHabit && (
+              <button 
+                type="button" 
+                className="btn-delete" 
+                style={{ marginRight: 'auto', backgroundColor: '#ef4444', color: 'white', border: 'none', padding: '0.75rem 1.5rem', borderRadius: '12px', fontWeight: '600', cursor: 'pointer', transition: 'background-color 0.2s' }}
+                onClick={() => {
+                  if (onDelete) onDelete(editingHabit.id);
+                }}
+              >
+                Delete
+              </button>
+            )}
             <button type="button" className="btn-cancel" onClick={onClose}>Cancel</button>
             <button type="submit" className="btn-primary" disabled={!name.trim()}>Save Habit</button>
           </div>
