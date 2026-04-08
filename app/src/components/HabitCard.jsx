@@ -201,11 +201,11 @@ function HabitCard({ habit, onCheckIn, onClick, onPromptRequest }) {
     <div className={`habit-card ${colorClass}`} onClick={() => onClick(habit)}>    
       <div 
         className={`habit-background-last-week ${colorClass}`} 
-        style={{ width: `${prevWeekRate}%` }}
+        style={{ width: `${prevWeekRate}%`, minWidth: prevWeekRate > 0 ? '12px' : '0' }}
       ></div>
       <div 
         className={`habit-background-current-week ${colorClass}`} 
-        style={{ width: `${currentWeekRate}%` }}
+        style={{ width: `${currentWeekRate}%`, minWidth: '12px' }}
       ></div>
       <div className="habit-content">
         <div className="habit-info">

@@ -94,12 +94,17 @@
   display: flex;
   align-items: center;
   margin: 0 24px;
+  gap: 8px;
 }
 
 .stat-group {
   display: flex;
   align-items: center;
   gap: 6px;
+  background-color: rgba(0, 0, 0, 0.03);
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
 .stat-value {
@@ -231,13 +236,16 @@
   }
 
   .habit-info {
-    width: 100%;
+    width: calc(100% - 110px);
   }
 
   .habit-stats {
+    position: absolute;
+    top: 16px;
+    right: 16px;
     margin: 0;
-    width: 100%;
-    justify-content: flex-start;
+    width: auto;
+    justify-content: flex-end;
   }
 
   .habit-week-grid {

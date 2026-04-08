@@ -91,12 +91,12 @@
 }
 
 /* Theme Colors for Color Picker */
-.color-swatch.bg-blue { background-color: var(--theme-blue-dark); }
-.color-swatch.bg-emerald { background-color: var(--theme-emerald-dark); }
-.color-swatch.bg-amber { background-color: var(--theme-amber-dark); }
-.color-swatch.bg-pink { background-color: var(--theme-pink-dark); }
-.color-swatch.bg-purple { background-color: var(--theme-purple-dark); }
-.color-swatch.bg-red { background-color: var(--theme-red-dark); }
+.color-swatch.bg-blue { background-color: #3B82F6; }
+.color-swatch.bg-emerald { background-color: #10B981; }
+.color-swatch.bg-amber { background-color: #F59E0B; }
+.color-swatch.bg-pink { background-color: #EC4899; }
+.color-swatch.bg-purple { background-color: #8B5CF6; }
+.color-swatch.bg-red { background-color: #EF4444; }
 
 .frequency-section {
   background-color: var(--color-bg-light);
