@@ -248,8 +248,9 @@ function HabitCard({ habit, onCheckIn, onClick, onPromptRequest }) {
   };
 
   return (
-    <div className={`habit-card ${colorClass}`} onClick={() => onClick(habit)}>    
-      <div 
+    <>
+      <div className={`habit-card ${colorClass}`} onClick={() => onClick(habit)}>    
+        <div 
         className={`habit-background-last-week ${colorClass}`} 
         style={{ width: `${prevWeekRate}%`, minWidth: prevWeekRate > 0 ? '12px' : '0' }}
       ></div>
@@ -283,16 +284,10 @@ function HabitCard({ habit, onCheckIn, onClick, onPromptRequest }) {
 
           <div 
             className={`stat-group trophy-stat ${hasCurrentTrophy ? 'has-trophy' : ''}`} 
-            onClick={(e) => { e.stopPropagation(); setShowTooltip(!showTooltip); }}
+            onClick={(e) => { e.stopPropagation(); setShowTooltip(true); }}
           >
-            <Trophy size={18} weight={hasCurrentTrophy ? "fill" : "regular"} color={hasCurrentTrophy ? "var(--color-warning)" : "var(--color-text-muted)"} />
+            <Trophy size={16} weight={hasCurrentTrophy ? "fill" : "regular"} color={hasCurrentTrophy ? "var(--color-warning)" : "var(--color-text-muted)"} />
             <span className="stat-value">{totalTrophies}</span>
-            {showTooltip && (
-              <div className="trophy-tooltip" onClick={(e) => e.stopPropagation()}>
-                <strong>Weekly Goal Met!</strong>
-                <p>Trophies are awarded when you match or exceed your previous week's progress! You have earned them {totalTrophies} times.</p>
-              </div>
-            )}
           </div>
         </div>
 
@@ -304,6 +299,24 @@ function HabitCard({ habit, onCheckIn, onClick, onPromptRequest }) {
         </div>
       </div>
     </div>
+    
+    {showTooltip && (
+      <div className="modal-overlay trophy-overlay" onClick={(e) => { e.stopPropagation(); setShowTooltip(false); }}>
+        <div className="trophy-modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="trophy-icon-large">
+            <Trophy size={56} weight="fill" color="var(--color-warning)" />
+          </div>
+          <h3 className="trophy-modal-title">Weekly Progress Trophy</h3>
+          <p className="trophy-modal-text">
+            You earn a trophy whenever your current week's progress meets or exceeds your previous week's progress. Keep the momentum going!
+          </p>
+          <button className="btn-awesome" onClick={(e) => { e.stopPropagation(); setShowTooltip(false); }}>
+            Awesome
+          </button>
+        </div>
+      </div>
+    )}
+  </>
   );
 }
 

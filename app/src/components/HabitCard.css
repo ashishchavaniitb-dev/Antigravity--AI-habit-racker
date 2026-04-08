@@ -122,33 +122,76 @@
   cursor: pointer;
 }
 
-.trophy-tooltip {
-  position: absolute;
-  top: 30px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-md);
-  padding: 12px;
-  border-radius: var(--radius-md);
-  width: 200px;
-  z-index: 100;
-  font-size: 0.85rem;
+/* Trophy Modal Styles */
+.modal-overlay.trophy-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(15, 23, 42, 0.5); /* Slate 900 / 50% */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.trophy-modal-content {
+  background-color: var(--color-white);
+  border-radius: var(--radius-lg);
+  width: 85%;
+  max-width: 380px;
+  box-shadow: var(--shadow-lg);
+  padding: 32px 24px;
+  text-align: center;
+  animation: modal-fade-in 0.2s ease-out;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.trophy-icon-large {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.trophy-modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
   color: var(--color-text-main);
-  text-align: left;
+  margin: 0 0 12px 0;
 }
 
-.trophy-tooltip strong {
-  display: block;
-  margin-bottom: 4px;
-  color: var(--color-warning);
-}
-
-.trophy-tooltip p {
-  margin: 0;
+.trophy-modal-text {
+  font-size: 0.95rem;
   color: var(--color-text-muted);
-  line-height: 1.4;
+  line-height: 1.5;
+  margin: 0 0 24px 0;
+}
+
+.btn-awesome {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  padding: 12px 32px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  width: 100%;
+}
+
+.btn-awesome:hover {
+  background-color: var(--color-primary-hover);
+}
+
+@keyframes modal-fade-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .habit-week-grid {

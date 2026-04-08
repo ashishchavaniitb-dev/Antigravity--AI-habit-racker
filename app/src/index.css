@@ -15,14 +15,14 @@
   --color-border: #E2E8F0; /* Slate 200 */
   
   /* Habit Specific Backgrounds - Softened for elegant look */
-  --color-habit-1: #DBEAFE; /* Blue 100 */
-  --color-habit-2: #FEF3C7; /* Amber 100 */
-  --color-habit-3: #FCE7F3; /* Pink 100 */
-  --color-habit-4: #EDE9FE; /* Purple 100 */
-  --color-habit-5: #D1FAE5; /* Emerald 100 */
-  --color-habit-6: #FEE2E2; /* Red 100 */
-  --color-habit-7: #FFEDD5; /* Orange 100 */
-  --color-habit-8: #FFE4E6; /* Rose 100 */
+  --color-habit-1: #BFDBFE; /* Blue 200 */
+  --color-habit-2: #FDE68A; /* Amber 200 */
+  --color-habit-3: #FBCFE8; /* Pink 200 */
+  --color-habit-4: #DDD6FE; /* Purple 200 */
+  --color-habit-5: #A7F3D0; /* Emerald 200 */
+  --color-habit-6: #FECACA; /* Red 200 */
+  --color-habit-7: #FED7AA; /* Orange 200 */
+  --color-habit-8: #FECDD3; /* Rose 200 */
 
   /* Typography */
   --font-heading: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
