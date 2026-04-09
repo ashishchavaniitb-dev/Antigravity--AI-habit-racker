@@ -9,6 +9,8 @@ import AnalyticsView from './components/AnalyticsView';
 import JournalView from './components/JournalView';
 import AICoachChat from './components/AICoachChat';
 import LoginScreen from './components/LoginScreen';
+import BottomNav from './components/BottomNav';
+import SettingsView from './components/SettingsView';
 import { auth } from './utils/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useCallback } from 'react';
@@ -28,6 +30,7 @@ const VIEW_HABITS = 'habits';
 const VIEW_ANALYTICS = 'analytics';
 const VIEW_JOURNAL = 'journal';
 const VIEW_COACH = 'coach';
+const VIEW_SETTINGS = 'settings';
 
 // ─── ID generator ───
 const generateId = () => {
@@ -433,6 +436,10 @@ function App() {
       return <AICoachChat user={user} />;
     }
 
+    if (currentView === VIEW_SETTINGS) {
+      return <SettingsView onLogout={() => auth.signOut()} />;
+    }
+
     return (
       <HabitList
         habits={getFilteredHabits()}
@@ -483,6 +490,11 @@ function App() {
           {renderContent()}
         </div>
       </main>
+
+      <BottomNav
+        currentView={currentView}
+        onViewChange={handleViewChange}
+      />
 
       <AddHabitModal
         isOpen={isModalOpen}
