@@ -69,10 +69,11 @@ function trophiesWon(habits, thisWeek, prevWeek) {
   let count = 0;
   habits.forEach(h => {
     const thisRate = habitWeekRate(h, thisWeek);
+    const prevRate = habitWeekRate(h, prevWeek);
     const habitHasPrevData = Object.keys(h.logs).some(d => d <= prevWeek[prevWeek.length - 1]);
     if (habitHasPrevData) {
-      // Standard: trophy if this week strictly exceeds last week
-      if (thisRate > habitWeekRate(h, prevWeek)) count++;
+      // Standard: trophy if this week meets or exceeds last week
+      if ((thisRate > 0 || prevRate > 0) && thisRate >= prevRate) count++;
     } else {
       // Week Zero: trophy only for perfect week (100%)
       if (thisRate === 100) count++; // trophyType: "perfect_week"
@@ -217,9 +218,10 @@ function monthlyTrophiesWon(habits, thisMonthDates, prevMonthDates) {
   let count = 0;
   habits.forEach(h => {
     const thisRate = habitMonthRate(h, thisMonthDates);
+    const prevRate = habitMonthRate(h, prevMonthDates);
     const habitHasPrevData = Object.keys(h.logs).some(d => d <= prevMonthDates[prevMonthDates.length - 1]);
     if (habitHasPrevData) {
-      if (thisRate > habitMonthRate(h, prevMonthDates)) count++;
+      if ((thisRate > 0 || prevRate > 0) && thisRate >= prevRate) count++;
     } else {
       // Month Zero: trophy only for perfect month (100%)
       if (thisRate === 100) count++; // trophyType: "perfect_week" (reused conceptual type)
@@ -449,7 +451,7 @@ function AnalyticsView({ habits }) {
                   Trophies won
                 </div>
                 <div className="a-stat-value">{trophies}<span className="a-stat-denom">/{habits.length}</span></div>
-                <div className="a-stat-sub">{prevHasData ? 'habits beat last week' : 'perfect week trophies'}</div>
+                <div className="a-stat-sub">{prevHasData ? 'habits met/beat last wk' : 'perfect week trophies'}</div>
                 {prevHasData && (
                   trophyDelta > 0
                     ? <div className="a-stat-delta delta-up">↑ {trophyDelta} more than last week</div>
@@ -512,8 +514,8 @@ function AnalyticsView({ habits }) {
                 const hRate = habitWeekRate(habit, selectedWeek);
                 const hPrev = habitWeekRate(habit, prevWeek);
                 const habitHasPrevData = Object.keys(habit.logs).some(d => d <= prevWeek[prevWeek.length - 1]);
-                // Week Zero: trophy only for perfect week (100%), standard: strictly exceeds prev
-                const hasTrophy = habitHasPrevData ? (hRate > hPrev) : (hRate === 100);
+                // Week Zero: trophy only for perfect week (100%), standard: meets or exceeds prev
+                const hasTrophy = habitHasPrevData ? ((hRate > 0 || hPrev > 0) && hRate >= hPrev) : (hRate === 100);
                 const colors = getHabitColor(habit.colorClass);
                 return (
                   <div className="habit-row" key={habit.id} style={idx === habits.length - 1 ? { marginBottom: 0 } : {}}>
@@ -647,7 +649,7 @@ function AnalyticsView({ habits }) {
                   Trophies won
                 </div>
                 <div className="a-stat-value">{trophies}<span className="a-stat-denom">/{habits.length}</span></div>
-                <div className="a-stat-sub">{prevHasData ? 'habits beat last month' : 'perfect month trophies'}</div>
+                <div className="a-stat-sub">{prevHasData ? 'habits met/beat last mo' : 'perfect month trophies'}</div>
                 {prevHasData && (
                   trophyDelta > 0
                     ? <div className="a-stat-delta delta-up">↑ {trophyDelta} more than last month</div>
@@ -710,8 +712,8 @@ function AnalyticsView({ habits }) {
                 const hRate = habitMonthRate(habit, selectedMonthDates);
                 const hPrev = habitMonthRate(habit, prevMonthDates);
                 const habitHasPrevData = Object.keys(habit.logs).some(d => d <= prevMonthDates[prevMonthDates.length - 1]);
-                // Month Zero: trophy only for perfect month (100%), standard: strictly exceeds prev
-                const hasTrophy = habitHasPrevData ? (hRate > hPrev) : (hRate === 100);
+                // Month Zero: trophy only for perfect month (100%), standard: meets or exceeds prev
+                const hasTrophy = habitHasPrevData ? ((hRate > 0 || hPrev > 0) && hRate >= hPrev) : (hRate === 100);
                 const colors = getHabitColor(habit.colorClass);
                 return (
                   <div className="habit-row" key={habit.id} style={idx === habits.length - 1 ? { marginBottom: 0 } : {}}>
