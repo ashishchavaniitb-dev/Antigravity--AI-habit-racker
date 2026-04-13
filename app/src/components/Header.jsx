@@ -30,10 +30,6 @@ function Header({
   return (
     <header className="page-header">
       <div className="header-left">
-        <button className="menu-toggle-btn" onClick={onMenuClick} aria-label="Open menu">
-          <List size={28} />
-          <span>Menu</span>
-        </button>
         <div className="header-title-row">
           <div className="header-title">
             <h1>{getTitle()}</h1>
